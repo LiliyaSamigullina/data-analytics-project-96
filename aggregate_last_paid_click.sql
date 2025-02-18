@@ -51,8 +51,8 @@ ag_lpc AS (
         lpc.utm_campaign,
         COUNT(lpc.visitor_id) AS visitors_count,
         COUNT(lpc.lead_id) AS leads_count,
-        COUNT(lpc.amount) FILTER (
-            WHERE lpc.closing_reason = '' OR lpc.status_id = 142
+        COUNT(lpc.lead_id) FILTER (
+            WHERE lpc.closing_reason = 'Успешно реализовано' OR lpc.status_id = 142
         ) AS purchases_count,
         SUM(amount) AS revenue
     FROM last_paid_click AS lpc
@@ -60,10 +60,10 @@ ag_lpc AS (
 )
 SELECT
     ag_lpc.visit_date,
+    ag_lpc.visitors_count,
     ag_lpc.utm_source,
     ag_lpc.utm_medium,
     ag_lpc.utm_campaign,
-    ag_lpc.visitors_count,
     ads.total_cost,
     ag_lpc.leads_count,
     ag_lpc.purchases_count,
@@ -80,5 +80,4 @@ ORDER BY
     visitors_count DESC,
     utm_source ASC,
     utm_medium ASC,
-    utm_campaign ASC
-LIMIT 15;
+    utm_campaign ASC;

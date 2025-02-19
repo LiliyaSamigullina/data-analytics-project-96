@@ -185,8 +185,8 @@ SELECT
         ELSE ROUND(SUM(total_cost) / SUM(purchases_count), 2)
     END AS cppu,
     ROUND(
-        100.0 * (SUM(revenue) - SUM(total_cost)) / SUM(total_cost),
-        2) AS roi
+        100.0 * (SUM(revenue) - SUM(total_cost)) / SUM(total_cost), 2
+    ) AS roi
 FROM tab2
 WHERE utm_source IN ('vk', 'yandex')
 GROUP BY 1, 2, 3

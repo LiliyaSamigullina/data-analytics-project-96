@@ -14,7 +14,7 @@ ORDER BY 1;
 SELECT
     source,
     COUNT(visitor_id) AS visitors_count
-FROM sessions s
+FROM sessions
 GROUP BY 1
 ORDER BY 2 DESC;
 
@@ -40,8 +40,9 @@ WITH tbl AS (
     GROUP BY 1
     ORDER BY 1
 )
-SELECT
-    SUM(leads_count)::NUMERIC / SUM(distinct_visitors_count)::NUMERIC * 100.0 AS lcr
+
+SELECT SUM(leads_count)::numeric / SUM(distinct_visitors_count)::numeric * 100.0
+    AS lcr
 FROM tbl;
 
 
@@ -52,13 +53,16 @@ WITH tbl AS (
         s.medium,
         s.campaign,
         COUNT(l.lead_id) AS leads_count,
-        COUNT(l.lead_id) FILTER (WHERE l.closing_reason = 'Успешная продажа' OR l.status_id = 142) AS purchase_count
+        COUNT(l.lead_id) FILTER
+            (WHERE l.closing_reason = 'Успешная продажа' OR l.status_id = 142)
+        AS purchase_count
     FROM leads AS l
     LEFT JOIN sessions AS s
         ON l.visitor_id = s.visitor_id
     WHERE s.medium != 'organic'
     GROUP BY 1, 2, 3
 )
+
 SELECT
     source,
     medium,
@@ -89,14 +93,18 @@ WITH ads AS (
         SUM(daily_spent) AS total_cost
     FROM ya_ads
     GROUP BY 1, 2, 3, 4
-), tab AS (
+),
+
+tab AS (
     SELECT
         visitor_id,
         MAX(visit_date) AS last_visit
     FROM sessions
     WHERE medium != 'organic'
     GROUP BY 1
-), last_paid_click AS (
+),
+
+last_paid_click AS (
     SELECT
         s.visitor_id,
         s.visit_date,
@@ -113,7 +121,9 @@ WITH ads AS (
         ON s.visitor_id = tab.visitor_id AND s.visit_date = tab.last_visit
     LEFT JOIN leads AS l
         ON s.visitor_id = l.visitor_id AND tab.last_visit <= l.created_at
-), ag_lpc AS (
+),
+
+ag_lpc AS (
     SELECT
         lpc.visit_date::date,
         lpc.utm_source,
@@ -124,10 +134,12 @@ WITH ads AS (
         COUNT(lpc.lead_id) FILTER (
             WHERE lpc.closing_reason = 'Успешно реализовано' OR lpc.status_id = 142
         ) AS purchases_count,
-        SUM(amount) AS revenue
+        SUM(lpc.amount) AS revenue
     FROM last_paid_click AS lpc
     GROUP BY 1, 2, 3, 4
-), tab2 AS (
+),
+
+tab2 AS (
     SELECT
         ag_lpc.visit_date,
         ag_lpc.utm_source,
@@ -145,13 +157,14 @@ WITH ads AS (
         AND ag_lpc.utm_campaign = ads.utm_campaign
         AND ag_lpc.visit_date::date = ads.campaign_date
     ORDER BY
-        revenue DESC NULLS LAST,
-        visit_date ASC,
-        visitors_count DESC,
-        utm_source ASC,
-        utm_medium ASC,
-        utm_campaign ASC
+        ag_lpc.revenue DESC NULLS LAST,
+        ag_lpc.visit_date ASC,
+        ag_lpc.visitors_count DESC,
+        ag_lpc.utm_source ASC,
+        ag_lpc.utm_medium ASC,
+        ag_lpc.utm_campaign ASC
 )
+
 SELECT
     utm_source,
     utm_medium,
@@ -178,35 +191,36 @@ ORDER BY roi DESC NULLS LAST;
 
 
 -- Total spent calculation
-with tab as (
-    select
+WITH tab AS (
+    SELECT
         vk.campaign_date::date,
         vk.utm_source,
         vk.utm_medium,
         vk.utm_campaign,
-        sum(vk.daily_spent) as daily_spent
-    from vk_ads as vk
-    group by
+        sum(vk.daily_spent) AS daily_spent
+    FROM vk_ads AS vk
+    GROUP BY
         1, 2, 3, 4
-    union all
-    select
+    UNION ALL
+    SELECT
         ya.campaign_date::date,
         ya.utm_source,
         ya.utm_medium,
         ya.utm_campaign,
-        sum(ya.daily_spent) as daily_spent
-    from ya_ads as ya
-    group by
+        sum(ya.daily_spent) AS daily_spent
+    FROM ya_ads AS ya
+    GROUP BY
         1, 2, 3, 4
 )
-select
+
+SELECT
     tab.campaign_date::date,
     tab.utm_source,
     tab.utm_medium,
     tab.utm_campaign,
     tab.daily_spent
-from tab
-order by 1;
+FROM tab
+ORDER BY 1;
 
 
 --visitor & campaigns count by dates
@@ -215,7 +229,7 @@ SELECT
     COUNT(DISTINCT s.visitor_id) AS visitor_count,
     COUNT(DISTINCT s.campaign) AS campaign_count
 FROM sessions AS s
-WHERE s.source = 'vk' or s.source = 'ya'
+WHERE s.source = 'vk' OR s.source = 'ya'
 GROUP BY 1
 ORDER BY 1;
 
@@ -238,6 +252,7 @@ WITH tab AS (
         l.closing_reason = 'Успешная продажа'
         AND s.visit_date::date <= l.created_at::date
 )
-SELECT max(days_passed) AS days_passed
+
+SELECT MAX(days_passed) AS days_passed
 FROM tab
 WHERE ntile = 9;

@@ -41,7 +41,8 @@ WITH tbl AS (
     ORDER BY 1
 )
 
-SELECT SUM(leads_count)::numeric / SUM(distinct_visitors_count)::numeric * 100.0
+SELECT
+    SUM(leads_count)::numeric / SUM(distinct_visitors_count)::numeric * 100.0
     AS lcr
 FROM tbl;
 
@@ -54,7 +55,7 @@ WITH tbl AS (
         s.campaign,
         COUNT(l.lead_id) AS leads_count,
         COUNT(l.lead_id) FILTER
-            (WHERE l.closing_reason = 'Успешная продажа' OR l.status_id = 142)
+        (WHERE l.closing_reason = 'Успешная продажа' OR l.status_id = 142)
         AS purchase_count
     FROM leads AS l
     LEFT JOIN sessions AS s
@@ -132,7 +133,8 @@ ag_lpc AS (
         COUNT(lpc.visitor_id) AS visitors_count,
         COUNT(lpc.lead_id) AS leads_count,
         COUNT(lpc.lead_id) FILTER (
-            WHERE lpc.closing_reason = 'Успешно реализовано' OR lpc.status_id = 142
+            WHERE lpc.closing_reason = 'Успешно реализовано'
+            OR lpc.status_id = 142
         ) AS purchases_count,
         SUM(lpc.amount) AS revenue
     FROM last_paid_click AS lpc
@@ -152,17 +154,18 @@ tab2 AS (
         ag_lpc.revenue
     FROM ag_lpc
     LEFT JOIN ads
-        ON ag_lpc.utm_source = ads.utm_source
-        AND ag_lpc.utm_medium = ads.utm_medium
-        AND ag_lpc.utm_campaign = ads.utm_campaign
-        AND ag_lpc.visit_date::date = ads.campaign_date
+        ON
+            ag_lpc.utm_source = ads.utm_source
+            AND ag_lpc.utm_medium = ads.utm_medium
+            AND ag_lpc.utm_campaign = ads.utm_campaign
+            AND ag_lpc.visit_date::date = ads.campaign_date
     ORDER BY
-        ag_lpc.revenue DESC NULLS LAST,
-        ag_lpc.visit_date ASC,
-        ag_lpc.visitors_count DESC,
-        ag_lpc.utm_source ASC,
-        ag_lpc.utm_medium ASC,
-        ag_lpc.utm_campaign ASC
+        9 DESC NULLS LAST,
+        1 ASC,
+        5 DESC,
+        2 ASC,
+        3 ASC,
+        4 ASC
 )
 
 SELECT

@@ -172,25 +172,25 @@ SELECT
     utm_source,
     utm_medium,
     utm_campaign,
-    CASE 
-    	WHEN SUM(visitors_count) = 0 THEN 0
-    	ELSE ROUND(SUM(total_cost) / SUM(visitors_count), 2)
+    CASE
+        WHEN SUM(visitors_count) = 0 THEN 0
+        ELSE ROUND(SUM(total_cost) / SUM(visitors_count), 2)
     END AS cpu,
-    CASE 
-    	WHEN SUM(leads_count) = 0 THEN 0
-    	ELSE ROUND(SUM(total_cost) / SUM(leads_count), 2)
+    CASE
+        WHEN SUM(leads_count) = 0 THEN 0
+        ELSE ROUND(SUM(total_cost) / SUM(leads_count), 2)
     END AS cpl,
-    CASE 
-    	WHEN SUM(purchases_count) = 0 THEN 0
-    	ELSE ROUND(SUM(total_cost) / SUM(purchases_count), 2)
+    CASE
+        WHEN SUM(purchases_count) = 0 THEN 0
+        ELSE ROUND(SUM(total_cost) / SUM(purchases_count), 2)
     END AS cppu,
     ROUND(
-        100.0 * (SUM(revenue) - SUM(total_cost)) / SUM(total_cost)
-    , 2) AS roi
+        100.0 * (SUM(revenue) - SUM(total_cost)) / SUM(total_cost),
+        2) AS roi
 FROM tab2
 WHERE utm_source IN ('vk', 'yandex')
 GROUP BY 1, 2, 3
-ORDER BY roi DESC NULLS LAST;
+ORDER BY 5 DESC NULLS LAST;
 
 
 -- Total spent calculation
@@ -200,7 +200,7 @@ WITH tab AS (
         vk.utm_source,
         vk.utm_medium,
         vk.utm_campaign,
-        sum(vk.daily_spent) AS daily_spent
+        SUM(vk.daily_spent) AS daily_spent
     FROM vk_ads AS vk
     GROUP BY
         1, 2, 3, 4
@@ -210,7 +210,7 @@ WITH tab AS (
         ya.utm_source,
         ya.utm_medium,
         ya.utm_campaign,
-        sum(ya.daily_spent) AS daily_spent
+        SUM(ya.daily_spent) AS daily_spent
     FROM ya_ads AS ya
     GROUP BY
         1, 2, 3, 4
@@ -245,7 +245,7 @@ WITH tab AS (
         l.lead_id,
         l.created_at::date,
         l.created_at::date - s.visit_date::date AS days_passed,
-        ntile(10) OVER (
+        NTILE(10) OVER (
             ORDER BY l.created_at::date - s.visit_date::date
         ) AS ntile
     FROM sessions AS s

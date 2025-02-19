@@ -15,7 +15,11 @@ WITH ads AS (
         utm_campaign,
         SUM(daily_spent) AS total_cost
     FROM ya_ads
-    GROUP BY 1, 2, 3, 4
+    GROUP BY
+        campaign_date::date,
+        utm_source,
+        utm_medium,
+        utm_campaign
 ),
 
 tab AS (
@@ -24,7 +28,7 @@ tab AS (
         MAX(visit_date) AS last_visit
     FROM sessions
     WHERE medium != 'organic'
-    GROUP BY 1
+    GROUP BY visitor_id
 ),
 
 last_paid_click AS (
@@ -60,7 +64,11 @@ ag_lpc AS (
         ) AS purchases_count,
         SUM(lpc.amount) AS revenue
     FROM last_paid_click AS lpc
-    GROUP BY 1, 2, 3, 4
+    GROUP BY
+        lpc.visit_date::date,
+        lpc.utm_source,
+        lpc.utm_medium,
+        lpc.utm_campaign
 )
 
 SELECT
@@ -75,10 +83,11 @@ SELECT
     ag_lpc.revenue
 FROM ag_lpc
 LEFT JOIN ads
-    ON ag_lpc.utm_source = ads.utm_source
-    AND ag_lpc.utm_medium = ads.utm_medium
-    AND ag_lpc.utm_campaign = ads.utm_campaign
-    AND ag_lpc.visit_date::date = ads.campaign_date
+    ON
+        ag_lpc.utm_source = ads.utm_source
+        AND ag_lpc.utm_medium = ads.utm_medium
+        AND ag_lpc.utm_campaign = ads.utm_campaign
+        AND ag_lpc.visit_date::date = ads.campaign_date
 ORDER BY
     ag_lpc.revenue DESC NULLS LAST,
     ag_lpc.visit_date ASC,

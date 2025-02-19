@@ -17,6 +17,7 @@ WITH ads AS (
     FROM ya_ads
     GROUP BY 1, 2, 3, 4
 ),
+
 tab AS (
     SELECT
         visitor_id,
@@ -25,6 +26,7 @@ tab AS (
     WHERE medium != 'organic'
     GROUP BY 1
 ),
+
 last_paid_click AS (
     SELECT
         s.visitor_id,
@@ -43,6 +45,7 @@ last_paid_click AS (
     LEFT JOIN leads AS l
         ON s.visitor_id = l.visitor_id AND tab.last_visit <= l.created_at
 ),
+
 ag_lpc AS (
     SELECT
         lpc.visit_date::date,
@@ -52,12 +55,14 @@ ag_lpc AS (
         COUNT(DISTINCT lpc.visitor_id) AS visitors_count,
         COUNT(lpc.lead_id) AS leads_count,
         COUNT(lpc.lead_id) FILTER (
-            WHERE lpc.closing_reason = 'Успешно реализовано' OR lpc.status_id = 142
+            WHERE lpc.closing_reason = 'Успешно реализовано'
+            OR lpc.status_id = 142
         ) AS purchases_count,
-        SUM(amount) AS revenue
+        SUM(lpc.amount) AS revenue
     FROM last_paid_click AS lpc
     GROUP BY 1, 2, 3, 4
 )
+
 SELECT
     ag_lpc.visit_date,
     ag_lpc.visitors_count,
@@ -75,10 +80,10 @@ LEFT JOIN ads
     AND ag_lpc.utm_campaign = ads.utm_campaign
     AND ag_lpc.visit_date::date = ads.campaign_date
 ORDER BY
-    revenue DESC NULLS LAST,
-    visit_date ASC,
-    visitors_count DESC,
-    utm_source ASC,
-    utm_medium ASC,
-    utm_campaign ASC
+    ag_lpc.revenue DESC NULLS LAST,
+    ag_lpc.visit_date ASC,
+    ag_lpc.visitors_count DESC,
+    ag_lpc.utm_source ASC,
+    ag_lpc.utm_medium ASC,
+    ag_lpc.utm_campaign ASC
 LIMIT 15;

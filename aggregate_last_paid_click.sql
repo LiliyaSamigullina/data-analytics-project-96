@@ -6,7 +6,11 @@ WITH ads AS (
         utm_campaign,
         SUM(daily_spent) AS total_cost
     FROM vk_ads
-    GROUP BY 1, 2, 3, 4
+    GROUP BY
+        campaign_date::date,
+        utm_source,
+        utm_medium,
+        utm_campaign
     UNION
     SELECT
         campaign_date::date,

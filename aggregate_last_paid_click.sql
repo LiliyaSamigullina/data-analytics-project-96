@@ -49,7 +49,7 @@ ag_lpc AS (
         lpc.utm_source,
         lpc.utm_medium,
         lpc.utm_campaign,
-        COUNT(lpc.visitor_id) AS visitors_count,
+        COUNT(DISTINCT lpc.visitor_id) AS visitors_count,
         COUNT(lpc.lead_id) AS leads_count,
         COUNT(lpc.lead_id) FILTER (
             WHERE lpc.closing_reason = 'Успешно реализовано' OR lpc.status_id = 142
@@ -80,4 +80,5 @@ ORDER BY
     visitors_count DESC,
     utm_source ASC,
     utm_medium ASC,
-    utm_campaign ASC;
+    utm_campaign ASC
+LIMIT 15;

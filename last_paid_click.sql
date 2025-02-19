@@ -6,6 +6,7 @@ WITH tab AS (
     WHERE medium != 'organic'
     GROUP BY visitor_id
 )
+
 SELECT
     s.visitor_id,
     s.visit_date,
